@@ -38,12 +38,8 @@ public class CustController {
     }
 
     @PostMapping("/transactions")
-    public ResponseEntity<String> transactions(@RequestBody AccTransactions accTransactions, AccBalance accBalance){
-        long accId1 = accBalance.getAccId();
-        long accId2 = accBalance.getAccId();
-        double balance = accBalance.getBalance();
-        accBalanceRepo.findById(accId1);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<String> transactions(@RequestBody AccTransactionsReq accTransactionsReq){
+        
     }
 
 }
