@@ -1,7 +1,7 @@
 package com.application.banking.controller;
 
 import com.application.banking.exception.InvalidInputException;
-import com.application.banking.model.*;
+import com.application.banking.model.request.AccTransactionsReq;
 import com.application.banking.model.request.CustCredentialsReq;
 import com.application.banking.model.request.CustDetailsReq;
 import com.application.banking.model.response.Response;
@@ -38,8 +38,9 @@ public class CustController {
     }
 
     @PostMapping("/transactions")
-    public ResponseEntity<String> transactions(@RequestBody AccTransactionsReq accTransactionsReq){
-        
+    public ResponseEntity<String> saveTransaction(@Valid @RequestBody AccTransactionsReq accTransactionsReq){
+        Long response = bankService.saveTransaction(accTransactionsReq);
+        return new ResponseEntity<String>((response != null ? response: new InvalidInputException("Invalid Details",HttpStatus.BAD_REQUEST.value())).toString(),HttpStatus.CREATED);
     }
 
 }

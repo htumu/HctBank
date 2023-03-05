@@ -2,10 +2,7 @@ package com.application.banking.service;
 
 import com.application.banking.generateId.IdGenerator;
 import com.application.banking.model.*;
-import com.application.banking.model.request.AccBalanceReq;
-import com.application.banking.model.request.CustAddressReq;
-import com.application.banking.model.request.CustCredentialsReq;
-import com.application.banking.model.request.CustDetailsReq;
+import com.application.banking.model.request.*;
 import com.application.banking.model.response.CreateResponse;
 import com.application.banking.model.response.Response;
 import com.application.banking.repository.*;
@@ -19,6 +16,7 @@ public class ServiceImpl implements BankService{
     private static final int ADDRESS_ID_LENGTH = 6;
     private static final int CUSTOMER_ID_LENGTH = 6;
     private static final int ACCOUNT_ID_LENGTH = 12;
+    private static final int TRANSACTION_ID_LENGTH = 8;
 
     private AccBalanceRepo accBalanceRepo;
     private AccTransactionsRepo accTransactionsRepo;
@@ -74,17 +72,48 @@ public class ServiceImpl implements BankService{
 
     @Override
     public Long updateAccount(AccBalanceReq accBalanceReq) {
-        AccBalance accBal = new AccBalance();
+        AccBalance accBalance = new AccBalance();
 
         if (accBalanceReq == null) {
-            accBal.setAccId(IdGenerator.generateRandom(ACCOUNT_ID_LENGTH));
-            accBal.setBalance(500.00);
+            accBalance.setAccId(IdGenerator.generateRandom(ACCOUNT_ID_LENGTH));
+            accBalance.setBalance(500.00);
         } else {
-            accBal.setAccId(accBal.getAccId());
-            accBal.setBalance(accBalanceReq.getBalance());
+            accBalance.setAccId(accBalance.getAccId());
+            accBalance.setBalance(accBalanceReq.getBalance());
         }
 
-        return accBalanceRepo.save(accBal).getAccId();
+        return accBalanceRepo.save(accBalance).getAccId();
+    }
+
+    @Override
+    public Long saveTransaction(AccTransactionsReq accTransactionsReq) {
+        Long accId = updateAccount(accTransactionsReq.getAccount());
+        AccTransactions accTransactions = new AccTransactions();
+        AccBalance accBalance = new AccBalance();
+
+        accTransactions.setTransactionRefId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
+        accTransactions.setAccId(accId);
+        accTransactions.setCredit(accTransactionsReq.getCredit());
+        accTransactions.setDebit(accTransactionsReq.getDebit());
+
+        if(accTransactions.getDebit() == 0 && accTransactions.getCredit() != 0){
+            accBalance.setBalance(accBalance.getBalance() + accTransactions.getCredit());
+            accTransactions.setTransactionId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
+        }
+        if(accTransactions.getDebit() != 0 && accTransactions.getCredit() ==0){
+            if(accBalance.getBalance()>= accTransactions.getDebit()){
+                accBalance.setBalance(accBalance.getBalance()-accTransactions.getDebit());
+                accTransactions.setTransactionId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
+            }
+            else{
+                System.out.println("Account balance has to be greater than the debited amount!");
+            }
+        }
+
+        accBalanceRepo.save(accBalance);
+        accTransactions.setAvlBalance(accBalance.getBalance());
+        accTransactions.setLastUpdated(Timestamp.from(Instant.now()));
+        return accTransactionsRepo.save(accTransactions).getTransactionId();
     }
 
     @Override
