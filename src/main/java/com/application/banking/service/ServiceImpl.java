@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 
 @Service
-public class ServiceImpl implements BankService{
+public class ServiceImpl implements BankService {
     private static final int ADDRESS_ID_LENGTH = 6;
     private static final int CUSTOMER_ID_LENGTH = 6;
     private static final int ACCOUNT_ID_LENGTH = 12;
@@ -87,33 +87,45 @@ public class ServiceImpl implements BankService{
 
     @Override
     public Long saveTransaction(AccTransactionsReq accTransactionsReq) {
-        Long accId = updateAccount(accTransactionsReq.getAccount());
+        Long accIdA = updateAccount(accTransactionsReq.getAccount());
+        Long accIdB = updateAccount(accTransactionsReq.getAccount());
         AccTransactions accTransactions = new AccTransactions();
-        AccBalance accBalance = new AccBalance();
+        AccBalance accBalanceA = new AccBalance();
+        AccBalance accBalanceB = new AccBalance();
 
-        accTransactions.setTransactionRefId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
-        accTransactions.setAccId(accId);
+
+        accTransactions.setAccId(accIdA);
+        accTransactions.setAccId(accIdB);
         accTransactions.setCredit(accTransactionsReq.getCredit());
         accTransactions.setDebit(accTransactionsReq.getDebit());
 
-        if(accTransactions.getDebit() == 0 && accTransactions.getCredit() != 0){
-            accBalance.setBalance(accBalance.getBalance() + accTransactions.getCredit());
+        if (accTransactions.getDebit() == 0 && accTransactions.getCredit() != 0 && accBalanceB.getBalance() >= accTransactions.getCredit()) {
+            accBalanceA.setBalance(accBalanceA.getBalance() + accTransactions.getCredit());
             accTransactions.setTransactionId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
+
+            accBalanceB.setBalance(accBalanceB.getBalance() - accTransactions.getCredit());
+            accTransactions.setTransactionId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
+
+            accTransactions.setTransactionRefId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
         }
-        if(accTransactions.getDebit() != 0 && accTransactions.getCredit() ==0){
-            if(accBalance.getBalance()>= accTransactions.getDebit()){
-                accBalance.setBalance(accBalance.getBalance()-accTransactions.getDebit());
-                accTransactions.setTransactionId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
-            }
-            else{
-                System.out.println("Account balance has to be greater than the debited amount!");
-            }
+        if (accTransactions.getDebit() != 0 && accTransactions.getCredit() == 0 && accBalanceA.getBalance() >= accTransactions.getDebit()) {
+
+            accBalanceA.setBalance(accBalanceA.getBalance() - accTransactions.getDebit());
+            accTransactions.setTransactionId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
+
+            accBalanceB.setBalance(accBalanceB.getBalance() + accTransactions.getDebit());
+            accTransactions.setTransactionId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
+
+            accTransactions.setTransactionRefId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
+
         }
 
-        accBalanceRepo.save(accBalance);
-        accTransactions.setAvlBalance(accBalance.getBalance());
+        accBalanceRepo.save(accBalanceA);
+        accBalanceRepo.save(accBalanceB);
+        accTransactions.setAvlBalance(accBalanceA.getBalance());
+        accTransactions.setAvlBalance(accBalanceB.getBalance());
         accTransactions.setLastUpdated(Timestamp.from(Instant.now()));
-        return accTransactionsRepo.save(accTransactions).getTransactionId();
+        return accTransactionsRepo.save(accTransactions).getTransactionRefId();
     }
 
     @Override
@@ -129,6 +141,43 @@ public class ServiceImpl implements BankService{
         custCredentials.setCustId(custCredentialsReq.getCustId());
         custCredentials.setPassword(custCredentialsReq.getPassword());
         custCredentialsRepo.save(custCredentials);
-        return "details are saved for : "+custCredentials.getCustId();
+        return "details are saved for : " + custCredentials.getCustId();
+    }
+
+    public Long creditAmount(AccTransactionsReq accTransactionsReq) {
+        Long accId = updateAccount(accTransactionsReq.getAccount());
+        AccTransactions accTransactions = new AccTransactions();
+        AccBalance accBalance = new AccBalance();
+
+        accTransactions.setAccId(accId);
+        accTransactions.setCredit(accTransactionsReq.getCredit());
+        accTransactions.setDebit(0);
+
+        accBalance.setBalance(accBalance.getBalance() + accTransactions.getCredit());
+        accTransactions.setTransactionId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
+        accTransactions.setTransactionRefId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
+        accBalanceRepo.save(accBalance);
+        accTransactions.setAvlBalance(accBalance.getBalance());
+        accTransactions.setLastUpdated(Timestamp.from(Instant.now()));
+        return accTransactionsRepo.save(accTransactions).getTransactionId();
+    }
+
+    public Long debitAmount(AccTransactionsReq accTransactionsReq) {
+        Long accId = updateAccount(accTransactionsReq.getAccount());
+        AccTransactions accTransactions = new AccTransactions();
+        AccBalance accBalance = new AccBalance();
+
+        accTransactions.setAccId(accId);
+        accTransactions.setDebit(accTransactionsReq.getDebit());
+        accTransactions.setCredit(0);
+        if (accBalance.getBalance() >= accTransactions.getDebit()) {
+            accBalance.setBalance(accBalance.getBalance() - accTransactions.getDebit());
+            accTransactions.setTransactionId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
+            accTransactions.setTransactionRefId(IdGenerator.generateRandom(TRANSACTION_ID_LENGTH));
+        }
+        accBalanceRepo.save(accBalance);
+        accTransactions.setAvlBalance(accBalance.getBalance());
+        accTransactions.setLastUpdated(Timestamp.from(Instant.now()));
+        return accTransactionsRepo.save(accTransactions).getTransactionId();
     }
 }
