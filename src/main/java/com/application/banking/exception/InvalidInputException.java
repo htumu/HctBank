@@ -3,7 +3,7 @@ package com.application.banking.exception;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
-public class InvalidInputException implements ExceptionHandler{
+public class InvalidInputException implements IExceptionHandler {
     public String message = null;
     public int status = 0;
 
