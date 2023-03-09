@@ -12,8 +12,8 @@ import javax.persistence.Table;
 @Table(name = "acc_balance")
 public class AccBalance {
     @Id
-    @Column(name = "accId")
+    @Column(name = "accId", nullable = false)
     private long accId;
-    @Column(name = "balance")
+    @Column(name = "balance", nullable = false)
     private double balance;
 }
