@@ -7,7 +7,7 @@ import javax.validation.constraints.PositiveOrZero;
 
 @Data
 public class AccTransactionsReq {
-    private long fromAccId;
+    private long accId;
     private long toAccId;
     private String type;
     @Positive

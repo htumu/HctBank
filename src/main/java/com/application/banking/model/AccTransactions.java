@@ -17,11 +17,11 @@ import java.sql.Timestamp;
 @Table(name = "acc_transactions")
 public class AccTransactions {
     @Id
-    @Column(name = "transactionId", nullable = false)
+    @Column(name = "transactionId")
     private long transactionId;
-    @Column(name = "transactionRefId",nullable = false)
+    @Column(name = "transactionRefId")
     private long transactionRefId;
-    @Column(name = "accId",nullable = false)
+    @Column(name = "accId")
     private long accId;
     @Column(name = "credit")
     private double credit;
@@ -29,7 +29,7 @@ public class AccTransactions {
     private double debit;
     @Column(name = "avlBalance")
     private double avlBalance;
-    @Column(name = "lastUpdated", nullable = false)
+    @Column(name = "lastUpdated")
     private Timestamp lastUpdated;
 
 }

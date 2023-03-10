@@ -3,13 +3,12 @@ package com.application.banking.service;
 import com.application.banking.generateId.IdGenerator;
 import com.application.banking.model.*;
 import com.application.banking.model.request.*;
-import com.application.banking.model.response.CreateCustResponse;
-import com.application.banking.model.response.IResponse;
 import com.application.banking.repository.*;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -35,8 +34,9 @@ public class ServiceImpl implements IBankService {
         this.custDetailsRepo = custDetailsRepo;
     }
 
+
     @Override
-    public IResponse saveCustomerDetails(CustDetailsReq custDetailsReq) {
+    public String saveCustomerDetails(CustDetailsReq custDetailsReq) {
         Long addressId = saveCustomerAddress(custDetailsReq.getAddress());
         CustDetails custDetails = new CustDetails();
 
@@ -54,7 +54,7 @@ public class ServiceImpl implements IBankService {
         Long accId = updateAccount(null);
 
         boolean mapResult = mapAccIdToCustId(new CustAccMap(accId, custId));
-        return mapResult ? new CreateCustResponse(custId) : null;
+        return "Customer details have been saved under the Customer Id: " + custId;
     }
 
     @Override
@@ -88,10 +88,10 @@ public class ServiceImpl implements IBankService {
 
     @Override
     public String saveTransactions(AccTransactionsReq accTransactionsReq) {
-        Long fromAccId = accTransactionsReq.getFromAccId();
+        Long fromAccId = accTransactionsReq.getAccId();
         Long toAccId = accTransactionsReq.getToAccId();
-        double fromAccBalance = accBalanceRepo.findBalanceByAccId(fromAccId);
-        double toAccBalance = accBalanceRepo.findBalanceByAccId(toAccId);
+        Double fromAccBalance = accBalanceRepo.findBalanceByAccId(fromAccId);
+        Double toAccBalance = accBalanceRepo.findBalanceByAccId(toAccId);
         AccTransactions fromTransaction = new AccTransactions();
         AccTransactions toTransaction = new AccTransactions();
 
@@ -179,54 +179,39 @@ public class ServiceImpl implements IBankService {
     }
 
     @Override
-    public Object getBalances(Long custId, Long accId) {
-        if (custId == 0 && accId != 0) {
+    public Optional<AccBalance> getBalances(Long custId, Long accId) {
+        if (custId == null && accId != 0) {
             return accBalanceRepo.findById(accId);
         }
-        if (custId != 0 && accId == 0) {
+        if (custId != 0 && accId == null) {
             Long accountId = custAccMapRepo.findAccIdByCustId(custId);
             return accBalanceRepo.findById(accountId);
         }
-        if (custId == 0 && accId == 0) {
-            return "Both CustomerId and AccountId cannot be zero. Please give valid details.";
-        }
-        if (custId != 0 && accId != 0) {
-            // check if given accountId is associated with the customer.
-            Long accountId = custAccMapRepo.findAccIdByCustId(custId);
-            if (accountId == accId) {
-                return accBalanceRepo.findById(accId);
-            } else {
-                return "This AccountId is not associated with the Customer!";
-            }
-        }
+
         return null;
     }
 
     @Override
-    public Object getCustomerDetails(Long custId) {
-        if (custId != 0) {
-            return custDetailsRepo.findById(custId);
-        } else {
-            return custDetailsRepo.findAll();
-        }
+    public Optional<CustDetails> getCustomerDetails(Long custId) {
+        return custDetailsRepo.findById(custId);
+    }
+
+    public List<CustDetails> getCustomerDetails() {
+        return custDetailsRepo.findAll();
     }
 
     @Override
-    public Object getTransactions(Long accId, Long transactionRefId) {
-        if (transactionRefId == 0 && accId != 0) {
-            return accTransactionsRepo.findTransactionsFromAId(accId);
-        }
-        if (transactionRefId != 0 && accId == 0) {
-            return accTransactionsRepo.findTransactionsFromTRId(transactionRefId);
-        }
-        if (transactionRefId != 0 && accId != 0) {
-            return accTransactionsRepo.findById(accTransactionsRepo.findTIdFromAIdAndTRId(accId, transactionRefId));
-        }
-        if (transactionRefId == 0 && accId == 0) {
-            return "Both Transaction ReferenceId and AccountId cannot be zero. Please give valid details.";
-        }
-        return null;
-
+    public Object getTransactionsByAccId(Long accId) {
+        return accTransactionsRepo.findTransactionsFromAId(accId);
     }
+    @Override
+    public Object getTransactionsByTransactionRefId(Long transactionRefId) {
+        return accTransactionsRepo.findTransactionsFromTRId(transactionRefId);
+    }
+    @Override
+    public Object getTransactionsByBoth(Long accId, Long transactionRefId) {
+        return accTransactionsRepo.findById(accTransactionsRepo.findTIdFromAIdAndTRId(accId, transactionRefId));
+    }
+
 
 }

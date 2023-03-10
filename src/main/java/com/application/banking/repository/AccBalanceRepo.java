@@ -11,16 +11,16 @@ import java.util.List;
 
 public interface AccBalanceRepo extends JpaRepository<AccBalance, Long> {
     @Query("select balance from AccBalance where accId = ?1")
-    public double findBalanceByAccId(Long accId);
+    public Double findBalanceByAccId(Long accId);
 
     @Transactional
     @Modifying(clearAutomatically = true)
     @Query("update AccBalance set balance = balance+?2 where accId = ?1")
-    public void creditBalanceByAccId(long accId, double balance);
+    public void creditBalanceByAccId(Long accId, Double amount);
 
     @Transactional
     @Modifying(clearAutomatically = true)
     @Query("update AccBalance set balance = balance-?2 where accId = ?1")
-    public void debitBalanceByAccId(long accId, double balance);
+    public void debitBalanceByAccId(Long accId, Double amount);
 
 }
