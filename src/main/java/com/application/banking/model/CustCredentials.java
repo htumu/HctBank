@@ -8,10 +8,11 @@ import javax.validation.constraints.NotEmpty;
 
 @Data
 @Entity
+@Table(name = "cust_credentials")
 public class CustCredentials {
     @Id
+    @Column(name = "custId")
     private long custId;
-    @NotEmpty(message = "Password is required!")
-    @ValidPassword
+    @Column(name = "password")
     private String password;
 }

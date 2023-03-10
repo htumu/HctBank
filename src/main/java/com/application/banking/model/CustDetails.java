@@ -1,28 +1,27 @@
 package com.application.banking.model;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import javax.persistence.*;
-import javax.validation.constraints.*;
 import java.sql.Timestamp;
 
 @Data
 @Entity
+@Table(name = "cust_details")
 public class CustDetails {
     @Id
+    @Column(name = "custId")
     private long custId;
-    @NotEmpty(message = "Name is Required!")
+    @Column(name = "name")
     private String name;
+    @Column(name = "addressId")
     private long addressId;
-    @NotNull(message = "Phone number is Required! ")
+    @Column(name = "phone")
     private long phone;
-    @NotEmpty(message = "Email is Required!")
-    @Email
+    @Column(name = "email")
     private String email;
+    @Column(name = "created")
     private Timestamp created;
+    @Column(name = "lastUpdated")
     private Timestamp lastUpdated;
 
 }

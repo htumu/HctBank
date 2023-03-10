@@ -1,17 +1,14 @@
 package com.application.banking.controller;
 
 import com.application.banking.exception.InvalidInputException;
-import com.application.banking.model.*;
+import com.application.banking.model.request.AccTransactionsReq;
 import com.application.banking.model.request.CustCredentialsReq;
 import com.application.banking.model.request.CustDetailsReq;
-import com.application.banking.model.response.Response;
-import com.application.banking.service.BankService;
+import com.application.banking.model.response.IResponse;
+import com.application.banking.service.IBankService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -19,27 +16,43 @@ import javax.validation.Valid;
 @RequestMapping("/hctbank")
 public class CustController {
 
-    private BankService bankService;
-
-    public CustController(BankService bankService) {
-        this.bankService = bankService;
+    private IBankService iBankService;
+    public CustController(IBankService iBankService) {
+        this.iBankService = iBankService;
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<String> saveCustomer(@Valid @RequestBody CustDetailsReq custDetailsReq){
-        Response response = bankService.saveCustomerDetails(custDetailsReq);
-        return new ResponseEntity<String>((response != null ? response : new InvalidInputException("Invalid Customer Details",HttpStatus.BAD_REQUEST.value())).toString(),HttpStatus.CREATED);
+    @PostMapping("/customers")
+    public ResponseEntity<IResponse> saveCustomer(@Valid @RequestBody CustDetailsReq custDetailsReq) {
+        IResponse iResponse = iBankService.saveCustomerDetails(custDetailsReq);
+        return new ResponseEntity<IResponse>(iResponse != null ? iResponse : (IResponse) new InvalidInputException("Invalid Details", HttpStatus.BAD_REQUEST.value()), HttpStatus.CREATED);
     }
 
     @PostMapping("/password")
-    public ResponseEntity<String> setPassword(@Valid @RequestBody CustCredentialsReq custCredentialsReq){
-        String response = bankService.savePassword(custCredentialsReq);
-        return new ResponseEntity<String>((response != null ? response: new InvalidInputException("Invalid Password",HttpStatus.BAD_REQUEST.value())).toString(),HttpStatus.CREATED);
+    public ResponseEntity<String> setPassword(@Valid @RequestBody CustCredentialsReq custCredentialsReq) {
+        String response = iBankService.savePassword(custCredentialsReq);
+        return new ResponseEntity<String>((response != null ? response : new InvalidInputException("Invalid Password", HttpStatus.BAD_REQUEST.value())).toString(), HttpStatus.CREATED);
+    }
+
+    @GetMapping("/balances")
+    public Object getBalances(@RequestParam Long custId, @RequestParam Long accId) {
+        Object response = iBankService.getBalances(custId, accId);
+        return response;
     }
 
     @PostMapping("/transactions")
-    public ResponseEntity<String> transactions(@RequestBody AccTransactionsReq accTransactionsReq){
-        
+    public ResponseEntity<String> saveTransaction(@Valid @RequestBody AccTransactionsReq accTransactionsReq) {
+        String response = iBankService.saveTransactions(accTransactionsReq);
+        return new ResponseEntity<String>((response != null ? response : new InvalidInputException("Invalid Details", HttpStatus.BAD_REQUEST.value())).toString(), HttpStatus.CREATED);
+    }
+    @GetMapping("/transactions")
+    public Object getTransactions(@RequestParam Long accId, @RequestParam Long transactionRefId){
+        Object response = iBankService.getTransactions(accId, transactionRefId);
+        return response;
     }
 
+    @GetMapping("/customers")
+    public Object getCustomerDetails(@RequestParam Long custId) {
+        Object response = iBankService.getCustomerDetails(custId);
+        return response;
+    }
 }

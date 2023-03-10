@@ -1,5 +1,5 @@
 package com.application.banking.exception;
 
-public interface ExceptionHandler {
+public interface IExceptionHandler {
     void setMessage(String message, int status);
 }
