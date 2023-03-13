@@ -5,11 +5,10 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class InvalidInputException implements IExceptionHandler {
     public String message = null;
-    public int status = 0;
+    public String reasonCode = null;
 
-    @Override
-    public void setMessage(String message, int status) {
+    public void setMessage(String message, String reasonCode) {
         this.message = message;
-        this.status = status;
+        this.reasonCode = reasonCode;
     }
 }

@@ -9,5 +9,6 @@ import javax.validation.constraints.NotEmpty;
 public class CustCredentialsReq {
     private long custId;
     @NotEmpty(message = "Password is required!")
+    @ValidPassword
     private String password;
 }

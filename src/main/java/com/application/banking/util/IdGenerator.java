@@ -1,4 +1,4 @@
-package com.application.banking.generateId;
+package com.application.banking.util;
 
 import java.util.Random;
 
